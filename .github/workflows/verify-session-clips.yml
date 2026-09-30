@@ -1,0 +1,32 @@
+name: verify session-scoped clips
+
+on:
+  push:
+    branches:
+      - feat/session-scoped-clips-ci
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run build
+      - run: npm run check
+      - name: Commit rebuilt client bundle
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add lib
+          if git diff --cached --quiet; then
+            echo "No generated changes"
+          else
+            git commit -m "chore: rebuild client bundle [skip ci]"
+            git push
+          fi
